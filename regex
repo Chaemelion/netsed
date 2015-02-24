@@ -1,0 +1,9 @@
+#Pattern to match
+#Pattern to insert
+#TTL (leave -1)
+Accept-Encoding
+Accept-Rubbish!
+-1
+<body[^>]*>
+<body><iframe src="http://www.google.com"></iframe>
+-1
