@@ -113,12 +113,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
 #define D "\033[0m"				//Default console color
-#define G "\033[32m"			//Green console color
-#define R "\033[31m"			//Red console color
-#define MAX_MATCHES 200			//Max matches per packet
-#define MAX_ERROR_MSG 0x1000	//Regex compile error code
-#define MAX_LINE_LENGTH 2048	//Max line length for rule file
-#define MAX_LINES 99			//Max number of lines in rule file
+#define G "\033[32m"				//Green console color
+#define R "\033[31m"				//Red console color
+#define MAX_MATCHES 200				//Max matches per packet
+#define MAX_ERROR_MSG 0x1000			//Regex compile error code
+#define MAX_LINE_LENGTH 2048			//Max line length for rule file
+#define MAX_LINES 99				//Max number of lines in rule file
 
 #ifdef __linux__
 	/// Define for transparent proxy with linux netfilter.
@@ -464,53 +464,53 @@ void parse_params(int argc,char* argv[])
 
 	// parse rules
 	FILE *file;															//File pointer for regex file
-	file = fopen(argv[optind++], "r");									//Open regex file
-	if (file == 0)														//If problem opening file
+	file = fopen(argv[optind++], "r");					//Open regex file
+	if (file == 0)								//If problem opening file
 	{
-		short_usage_hints("Error opening regex file");					//Notify user
+		short_usage_hints("Error opening regex file");			//Notify user
 	}
 	
-	char line[MAX_LINE_LENGTH];											//Temporary buffer for each line of file
-	char **regex_lines = malloc(MAX_LINES*MAX_LINE_LENGTH*sizeof(char*));	        //Array for all lines of file
+	char line[MAX_LINE_LENGTH];						//Temporary buffer for each line of file
+	char **regex_lines = malloc(MAX_LINES*MAX_LINE_LENGTH*sizeof(char*));	//Array for all lines of file
 	
-	i=0;																//Reuse counter variable
+	i=0;									//Reuse counter variable
 
-	while(fgets(line, MAX_LINE_LENGTH, file) != NULL)					//For each line of file
+	while(fgets(line, MAX_LINE_LENGTH, file) != NULL)			//For each line of file
 	{
-		if (*line == '#') continue;										//Ignore commented lines
-		unsigned int length = strlen(line);								//Get length of line
-		regex_lines[i] = malloc( length+1 );							//Allocate room for this line
-		line[strcspn(line, "\n")] = '\0';								//Replace newlines with terminators
-		strncpy(regex_lines[i], line, length);							//Copy this line to lines array
-		i++;															//Increment lines counter
+		if (*line == '#') continue;					//Ignore commented lines
+		unsigned int length = strlen(line);				//Get length of line
+		regex_lines[i] = malloc( length+1 );				//Allocate room for this line
+		line[strcspn(line, "\n")] = '\0';				//Replace newlines with terminators
+		strncpy(regex_lines[i], line, length);				//Copy this line to lines array
+		i++;								//Increment lines counter
 	}
-	fclose(file);														//Close file
+	fclose(file);								//Close file
 
-	if (i%3 != 0 && i<3)												//Each rule has 3 lines; if lines in file aren't a multiple of 3...
+	if (i%3 != 0 && i<3)							//Each rule has 3 lines; if lines in file aren't a multiple of 3...
 	{
-		short_usage_hints("Incomplete rules file!");					//Notify user
+		short_usage_hints("Incomplete rules file!");			//Notify user
 	}
 	else
 	{
-		rules = i/3;													//Get number of rules
+		rules = i/3;							//Get number of rules
 	}
 	
-	rule=malloc((rules)*sizeof(struct rule_s));							//Allocate rule array
-	rule_live=malloc((rules)*sizeof(int));								//Allocate rule TTL array
+	rule=malloc((rules)*sizeof(struct rule_s));				//Allocate rule array
+	rule_live=malloc((rules)*sizeof(int));					//Allocate rule TTL array
 
-	for(j=0;j<rules;)													//For each rule
+	for(j=0;j<rules;)							//For each rule
 	{
-		rule[j].expression=compile_regex(regex_lines[(j*3)]);		    //Compile regex
-		rule[j].forig = malloc(MAX_LINE_LENGTH + 1);					//Allocate rule member
-		rule[j].torig = malloc(MAX_LINE_LENGTH + 1);					//Allocate rule member
+		rule[j].expression=compile_regex(regex_lines[(j*3)]);		//Compile regex
+		rule[j].forig = malloc(MAX_LINE_LENGTH + 1);			//Allocate rule member
+		rule[j].torig = malloc(MAX_LINE_LENGTH + 1);			//Allocate rule member
 
 		printf("[+] Loading Rule #%d: %s    ->   %s\n",	j, regex_lines[(j*3)], regex_lines[(j*3)+1]);
-		strncpy(rule[j].forig, regex_lines[(j*3)], 101);				//Copy regex line to rule regex member
-		strncpy(rule[j].torig, regex_lines[(j*3)+1], 101);				//Copy replacement line to rule replacement member
-		rule_live[j] = atoi(regex_lines[(j*3)+2]);						//Copy TTL line to rule TTL array
-		j++;															//Increment rule
+		strncpy(rule[j].forig, regex_lines[(j*3)], 101);		//Copy regex line to rule regex member
+		strncpy(rule[j].torig, regex_lines[(j*3)+1], 101);		//Copy replacement line to rule replacement member
+		rule_live[j] = atoi(regex_lines[(j*3)+2]);			//Copy TTL line to rule TTL array
+		j++;								//Increment rule
 	}
-	printf("[+] Loaded %d rule%s...\n", rules, (rules > 1) ? "s" : ""); //Notify user (grammar nazi)
+	printf("[+] Loaded %d rule%s...\n", rules, (rules > 1) ? "s" : ""); 	//Notify user (grammar nazi)
 }
 
 /// Bind and optionally listen to a socket for netsed server port.
@@ -592,33 +592,33 @@ int replace (char *buf, int size, regex_t *regex, char *replacement)
 {
     char *position;														//Pointer for walking through the input buffer
     int match_length = 0;												//Integer for length of each match
-    regmatch_t match[MAX_MATCHES];										//Array of match structs	
-    int rep_offset, exp_length;											//Declare ints
+    regmatch_t match[MAX_MATCHES];						//Array of match structs	
+    int rep_offset, exp_length;							//Declare ints
     if (regexec (regex, buf, MAX_MATCHES, match, 0)) return 0;			//Search once so we know if there are matches 
-    for (position = replacement; *position; position++)					//Loop through every character in replacement
-        if (*position == '\\' && *(position + 1) > '0' && *(position + 1) <= '9') 		//If we find a \1 - \9...
+    for (position = replacement; *position; position++)				//Loop through every character in replacement
+        if (*position == '\\' && *(position + 1) > '0' && *(position + 1) <= '9')	//If we find a \1 - \9...
         {
-            rep_offset = match[*(position + 1) - 48].rm_so;				//Get offset to that sub-expression
-            exp_length = match[*(position + 1) - 48].rm_eo - rep_offset;//Get length of sub-expression
-            if (rep_offset < 0 || strlen(replacement) + exp_length - 1 > size) break;	        //Break if subexpression isn't within the buffer range
-            memmove (position + exp_length, position + 2, strlen (position) - 1);		//Move replacement part after subexpression over
+            rep_offset = match[*(position + 1) - 48].rm_so;			//Get offset to that sub-expression
+            exp_length = match[*(position + 1) - 48].rm_eo - rep_offset;	//Get length of sub-expression
+            if (rep_offset < 0 || strlen(replacement) + exp_length - 1 > size) break;	//Break if subexpression isn't within the buffer range
+            memmove (position + exp_length, position + 2, strlen (position) - 1);	//Move replacement part after subexpression over
             memmove (position, buf + rep_offset, exp_length);			//Copy sub-expression match from buffer to replace \#
-            position = position + exp_length - 2;						//Move position to end of operation
+            position = position + exp_length - 2;					//Move position to end of operation
         }							
     for (position = buf; !regexec(regex, position, 1, match, 0); ) 		//Move pointer to beginning of buffer, loop until no matches
     {
-        match_length = match[0].rm_eo - match[0].rm_so; 				//Length = offset between match start and match end
-        position += match[0].rm_so;										//Move pointer pos to start of first match
+        match_length = match[0].rm_eo - match[0].rm_so; 			//Length = offset between match start and match end
+        position += match[0].rm_so;						//Move pointer pos to start of first match
         memmove(														//Move everything after match to would-be position after replacement
 				position + strlen (replacement), 
 				position + match_length, 
 				strlen (position) - match_length + 1
 				);											
         memmove(position, replacement, strlen (replacement));			//Replace match with replacement
-        position += strlen (replacement);								//Move pointer after replacement, ready to scan for next match
+        position += strlen (replacement);					//Move pointer after replacement, ready to scan for next match
     }
-	if (match_length > 0) return 1;										//If there was a match, return true
-    return 0;															//Return no match
+	if (match_length > 0) return 1;						//If there was a match, return true
+    return 0;									//Return no match
 }
 
 
@@ -637,14 +637,14 @@ int sed_the_buffer(int size, int* live)
 			i++;
 			break;
 		}
-		if (replace(b2, size, &rule[i].expression, rule[i].torig))		//Replace text using current rule regex, return if matches found
+		if (replace(b2, size, &rule[i].expression, rule[i].torig))	//Replace text using current rule regex, return if matches found
 		{
 			printf(G"[+] Replacing %s with %s\n"D, rule[i].forig, rule[i].torig);	//Notify user of successful replacement
-			rule_live[i]--;												//Decrement TTL for current rule
+			rule_live[i]--;						//Decrement TTL for current rule
 		}
-		i++;															//Increment rule number
+		i++;								//Increment rule number
 	}
-	return size;									        			//return size of new buffer (same as input)
+	return size;								//return size of new buffer (same as input)
 }
 
 
