@@ -114,7 +114,7 @@ Ok, here we are. First of all, you should know how to set up the first
 configuration I've been talking about - static, user-space forwarder.
 NetSED accepts following parameters:
 
-   netsed proto lport rhost rport rule1 [ rule2 ... ]
+   netsed proto lport rhost rport rule_file
 
 First parameter, 'proto', means, obviously, the protocol. You might choose
 'tcp' or 'udp'. Then, you have to specify 'lport' - local listening port.
@@ -122,67 +122,21 @@ Next argument, 'rhost', is the remote server address where the connection
 should be forwarded. ONLY IP ADDRESSES ARE SUPPORTED BY NOW. Then, we
 have 'rport' - remote port number, and up to 50 filtering rules.
 
-General replacement rules syntax is: 
+The rule file is a simple text file containing replacement rules. 
+Each rule is composed of three lines. The first is the regular expression
+to match, the second is the replacement text, and the third is a TTL.
+It would probably be best to leave the TTL disabled with a value of -1.
+Comments can be made by starting the line with a #. For Example:
 
-   s/pat1/pat2[/expire]
-
-This will replace all occurrences of pat1 with pat2 in matching packets.
-An additional parameter (count) can be used to expire rule after 'count'
-successful substitutions for a given connection. Eight-bit characters, 
-including NULL and '/', can be passed using HTTP-alike hex escape 
-sequences (eg. %0a%0d). Single '%' can be reached by using '%%'.
-Examples:
-
-  's/andrew/mike/1'     - replace 'andrew' with 'mike' (only first time)
-  's/andrew/mike'       - replace all occurrences of 'andrew' with 'mike'
-  's/andrew/mike%00%00' - replace 'andrew' with 'mike\x00\x00'
-                          (manually padding to keep original size)
-  's/%%/%2f/20'         - replace the 20 first occurence of '%' with '/'
-
-Rules are not working on cross-packet boundaries and are evaluated from
-first to last not expired rule.
-
-Per-rule TTLs (time-to-live) are useful if you want to modify eg. only
-the first packet, letting other packets unmodified, or to dynamically
-change NetSED functionality. This rule, for example, will change 'Henry'
-to 'William' in the first packet, and to 'Mariah' in all other packets:
-
-      s/Henry/William/1 s/Henry/Mariah
-
-So, let's try our first command-line example:
-
-  ./netsed tcp 10101 127.0.0.1 25 s/ehlo/badcommand/1
-
-This should be obvious - connection to local port 10101 will be forwarded
-to local smtp service. Take a look:
-
-$ telnet localhost 10101
-220 squirrel.tpi.pl ESMTP Sendmail 8.9.3/8.9.3; Fri, 5 Jan 2001 00:15:18 +0100
-ehlo
-500 Command unrecognized: "badcommand"
-ehlo
-501 ehlo requires domain address
-
-Apparently, it worked :) Try playing a little with different patterns,
-multiple rules etc. Generally, NetSED works by incremental comparsion
-of the rules, and then skipping already replaced data. For example:
-
-    Rules: s/degener/devi/
-           s/generation/%20and%20sausages/
-           s/sausages/chicken/
-
-    Input data: 'degenerationgeneration'
-
-    Init: degenerationgeneration
-          ^ (replace pointer)
-
-    Pass 1: deviationgeneration       [degener -> devi]
-                ^ (replace pointer)
-
-    Pass 2: deviation and sausages    [generation -> and sausages]
-                                  ^
-    No futher replacements made - end of input data (so, 'sausages'
-    won't be replaced with 'chicken').
+#Disable encoding
+Accept-Encoding
+Accept-Rubbish!
+-1
+#Replace html titles
+<title>.*?</title>
+<title>CustomTitle</title>
+-1
+   
 
 Now, I suppose you'd like to know how to setup good-working transparent
 configuration. Well - nothing easier :) The configuration described above
